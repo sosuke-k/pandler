@@ -1,11 +1,16 @@
 const electron = require('electron')
 // Module to control application life.
 const app = electron.app
+const dialog = electron.dialog
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
 const path = require('path')
 const url = require('url')
+
+const PROTOCOL = 'atom-ghq'
+
+app.setAsDefaultProtocolClient(PROTOCOL)
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -23,7 +28,7 @@ function createWindow () {
   }))
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -54,6 +59,28 @@ app.on('activate', function () {
   if (mainWindow === null) {
     createWindow()
   }
+})
+
+app.on('open-url', function (event, url) {
+  ghq = require('child_process').spawn('ghq', ['root']);
+  ghq.stdout.on('data', function (data) {
+    let ghq_root = data.toString('UTF-8').replace(/\r?\n/g, "");
+    let repo = ghq_root + '/' + url.substr(11);
+    console.log("atom " + repo);
+    require('child_process').spawn('atom', [repo]);
+
+    // TODO
+    // リポジトリの存在チェック
+    // dialog.showErrorBox('Welcome Back', `You arrived from: ${url}`)
+  });
+
+  ghq.stderr.on('data', function (data) {
+    console.log('stderr: ' + data);
+  });
+
+  ghq.on('exit', function (code) {
+    console.log('child process exited with code ' + code);
+  });
 })
 
 // In this file you can include the rest of your app's specific main process
