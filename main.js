@@ -2,35 +2,44 @@ const electron = require('electron')
 // Module to control application life.
 const app = electron.app
 const dialog = electron.dialog
+const Tray = electron.Tray
+const Menu = electron.Menu
+const ipc = electron.ipcMain
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
 const path = require('path')
 const url = require('url')
+const fs = require('fs');
+const Store = require('./store.js');
 
-const PROTOCOL = 'atom-ghq'
+const store = new Store({
+  configName: 'settings',
+  defaults: {
+    'command': 'pwd'
+  }
+});
+
+console.log('store', store)
+
+const PROTOCOL = 'pandler'
 
 app.setAsDefaultProtocolClient(PROTOCOL)
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+let mainWindow = null
+let appIcon = null
 
 function createWindow () {
-  // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
-  // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
   }))
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
-
-  // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
@@ -39,10 +48,42 @@ function createWindow () {
   })
 }
 
+function onReady () {
+  const iconName = process.platform === 'win32' ? 'windows-icon.png' : 'iconTemplate.png'
+  const iconPath = path.join(__dirname, iconName)
+  appIcon = new Tray(iconPath)
+  const contextMenu = Menu.buildFromTemplate([{
+    label: 'Set command',
+    click: function () {
+      createWindow()
+    }
+  },{
+    role: 'quit'
+  }])
+  appIcon.setToolTip('Pandler')
+  appIcon.setContextMenu(contextMenu)
+
+  // let settings = null
+  //
+  // const settingPath = path.join(app.getPath('userData'), 'settings.json');
+  // try {
+  //   tmp = fs.readFileSync(settingPath)
+  //   settings = JSON.parse(tmp);
+  // } catch(error) {
+  //   console.log('Failed to load ' + settingPath)
+  //   settings = {'command': ''};
+  //   fs.writeFileSync(settingPath, JSON.stringify(settings));
+  // }
+  // console.log(settings)
+
+  let cmd = store.get('command')
+  console.log(cmd)
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', onReady)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -51,6 +92,9 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+
+  // if (appIcon) appIcon.destroy()
+
 })
 
 app.on('activate', function () {
@@ -61,27 +105,35 @@ app.on('activate', function () {
   }
 })
 
-app.on('open-url', function (event, url) {
-  ghq = require('child_process').spawn('ghq', ['root']);
-  ghq.stdout.on('data', function (data) {
-    let ghq_root = data.toString('UTF-8').replace(/\r?\n/g, "");
-    let repo = ghq_root + '/' + url.substr(11);
-    console.log("atom " + repo);
-    require('child_process').spawn('atom', [repo]);
+app.on('open-url', function (event, urlStr) {
+  try {
 
-    // TODO
-    // リポジトリの存在チェック
-    // dialog.showErrorBox('Welcome Back', `You arrived from: ${url}`)
-  });
+    console.log('open-url')
+    urlObj = url.parse(urlStr, true);
+    console.log(urlObj)
 
-  ghq.stderr.on('data', function (data) {
-    console.log('stderr: ' + data);
-  });
+    cmdStr = store.get('command')
+      .replace('${host}', urlObj['host'])
+      .replace('${pathname}', urlObj['pathname'])
+    console.log(cmdStr)
 
-  ghq.on('exit', function (code) {
-    console.log('child process exited with code ' + code);
-  });
+    args = cmdStr.split(' ')
+    cmd = args.shift()
+    require('child_process').spawn(cmd, args);
+
+  } catch(error) {
+    dialog.showErrorBox('Error', `You arrived from: ${urlStr}`)
+  }
+
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+ipc.on('save-command', function (event, arg) {
+  console.log('command', arg)
+  store.set('command', arg)
+})
+
+ipc.on('get-setting', (event, arg) => {
+  console.log(arg)
+  console.log(store.get(arg))
+  event.sender.send('set-setting', store.get(arg))
+})

@@ -1,21 +1,19 @@
 {
-  "name": "electron-quick-start",
-  "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "name": "pandler",
+  "version": "0.1.0",
+  "description": "A useful protocol handler",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/sosuke-k/atom-ghq-protocol-handler",
   "keywords": [
     "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "protocol",
+    "handler"
   ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "sosuke-k",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^1.4.1"
   }
