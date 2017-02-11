@@ -2,19 +2,28 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Pandler</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background-color: #f1f1f1;
+      }
+    </style>
   </head>
   <body>
-    <input id="input-host" type="text" name="host" size="20" maxlength="20">
-    <input id="input-command" type="text" name="command" size="70" maxlength="50">
-    <input id="input-error" type="checkbox" name="error" value="show">
-    <button id="save-command">Save</button>
-    <hr>
-    <a href="pandler://github.com/sosuke-k/pandler">pandler://github.com/sosuke-k/pandler</a>
+    <div class="container">
+      <label for="host">HOST</label>
+      <input id="input-host" type="text" name="host" size="20" maxlength="20">
+      <label for"command">COMMAND</label>
+      <input id="input-command" type="text" name="command" size="70">
+      <!-- <input id="input-error" type="checkbox" name="error" value="show"> -->
+      <button id="save-command">Save</button>
+    </div>
   </body>
 
   <script>
-    // You can also require other files to run in this process
     require('./renderer.js')
   </script>
 </html>

@@ -33,22 +33,17 @@ const store = new Store({
 });
 
 function updateCommands (commands) {
-  console.log(commands)
   commands.forEach(function(cmd) {
     hosts.push(cmd['host'])
     cmdDict[cmd['host']] = cmd
   });
-  console.log(hosts)
-  console.log(cmdDict)
 }
 
 function runCommand (urlObj, command) {
-  console.log(command)
   try {
     let cmdStr = command['command']
       .replace('${host}', urlObj['host'])
       .replace('${pathname}', urlObj['pathname'])
-    console.log(cmdStr)
 
     let args = cmdStr.split(' ')
     let cmd = args.shift()
@@ -66,10 +61,13 @@ function runCommand (urlObj, command) {
       console.log('child process exited with code ' + code);
       if (errStr != '') {
         dialog.showErrorBox(cmdStr, errStr)
+      } else {
+        console.log("exit", code)
       }
     });
   } catch(error) {
     console.log(error)
+    dialog.showErrorBox('error', error)
   }
 }
 
@@ -88,6 +86,26 @@ function createWindow () {
 }
 
 function onReady () {
+  let template = [{
+    label: "Application",
+    submenu: [
+        { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
+        { type: "separator" },
+        { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+    ]}, {
+    label: "Edit",
+    submenu: [
+        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+        { type: "separator" },
+        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+    ]}
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
   const iconName = process.platform === 'win32' ? 'windows-icon.png' : 'iconTemplate.png'
   const iconPath = path.join(__dirname, iconName)
   appIcon = new Tray(iconPath)
@@ -125,13 +143,14 @@ app.on('activate', function () {
 })
 
 app.on('open-url', function (event, urlStr) {
-  console.log('open-url')
-
+  // parse url
   let urlObj = url.parse(urlStr, true);
-  console.log(urlObj)
 
+  // get command corresponding host of url
   command = cmdDict[urlObj['host']]
+
   if (command) {
+    // if command exists, run it
     runCommand(urlObj, command)
   } else {
     command = cmdDict['*']
@@ -144,7 +163,6 @@ app.on('open-url', function (event, urlStr) {
 })
 
 ipc.on('save-command', function (event, arg) {
-  console.log('command', arg)
   commands = arg['commands']
   let success = store.set('commands', commands)
   updateCommands(commands)
@@ -152,7 +170,5 @@ ipc.on('save-command', function (event, arg) {
 })
 
 ipc.on('get-setting', (event, arg) => {
-  console.log(arg)
-  console.log(store.get(arg))
   event.sender.send('return-get-setting', store.get(arg))
 })

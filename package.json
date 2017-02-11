@@ -4,7 +4,8 @@
   "description": "A useful protocol handler",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/app-icon/mac/app.icns --out=out"
   },
   "repository": "https://github.com/sosuke-k/atom-ghq-protocol-handler",
   "keywords": [
@@ -15,6 +16,7 @@
   "author": "sosuke-k",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^1.4.1"
+    "electron": "^1.4.1",
+    "electron-packager": "^8.5.1"
   }
 }

@@ -2,7 +2,6 @@ const ipc = require('electron').ipcRenderer
 const btn = document.getElementById('save-command')
 
 ipc.on('return-save-command', (event, arg) => {
-  console.log(arg)
   if (arg) {
     new Notification("Save commands");
   } else {
@@ -16,7 +15,7 @@ btn.addEventListener('click', function (event) {
       {
         'host': document.getElementById('input-host').value,
         'command': command = document.getElementById('input-command').value,
-        'error': document.getElementById('input-error').value
+        // 'error': document.getElementById('input-error').value
       }
     ]
   }
@@ -24,8 +23,9 @@ btn.addEventListener('click', function (event) {
 })
 
 ipc.on('return-get-setting', (event, arg) => {
-  console.log(arg)
-  document.getElementById('input-command').value = arg
+  command = arg[0] // not support more than one commands yet...
+  document.getElementById('input-command').value = command['command']
+  document.getElementById('input-host').value = command['host']
 })
 
-ipc.send('get-setting', 'command')
+ipc.send('get-setting', 'commands')
