@@ -16,12 +16,14 @@ let mainWindow = null
 let appIcon = null
 let hosts = []
 let cmdDict = {}
+let initDict = false
 
 app.setAsDefaultProtocolClient(PROTOCOL)
 
 const store = new Store({
   configName: 'settings',
   defaults: {
+    'shell': '/bin/sh',
     'commands': [
       {
         'host': '*',
@@ -47,7 +49,10 @@ function runCommand (urlObj, command) {
 
     let args = cmdStr.split(' ')
     let cmd = args.shift()
-    let child = require('child_process').spawn(cmd, args);
+    let options = {
+      'shell': store.get('shell')
+    }
+    let child = require('child_process').spawn(cmd, args, options);
     let errStr = ""
     child.stdout.on('data', function (data) {
       console.log('stdout: ' + data);
@@ -122,6 +127,7 @@ function onReady () {
 
   let commands = store.get('commands')
   updateCommands(commands)
+  initDict = true
 }
 
 app.on('ready', onReady)
@@ -143,6 +149,10 @@ app.on('activate', function () {
 })
 
 app.on('open-url', function (event, urlStr) {
+  if (!initDict) {
+    updateCommands(store.get('commands'))
+  }
+
   // parse url
   let urlObj = url.parse(urlStr, true);
 
@@ -162,13 +172,19 @@ app.on('open-url', function (event, urlStr) {
   }
 })
 
-ipc.on('save-command', function (event, arg) {
+ipc.on('save-settings', function (event, arg) {
+  shell = arg['shell']
   commands = arg['commands']
-  let success = store.set('commands', commands)
+  let success1 = store.set('shell', shell)
+  let success2 = store.set('commands', commands)
   updateCommands(commands)
-  event.sender.send('return-save-command', success)
+  event.sender.send('return-save-settings', (success1 & success2))
 })
 
-ipc.on('get-setting', (event, arg) => {
-  event.sender.send('return-get-setting', store.get(arg))
+ipc.on('get-settings', function (event) {
+  settings = {
+    'shell': store.get('shell'),
+    'commands': store.get('commands')
+  }
+  event.sender.send('return-get-settings', settings)
 })
