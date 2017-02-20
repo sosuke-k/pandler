@@ -1,0 +1,67 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="my-shell">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-toolbar {
+        background: white;
+        color: red;
+      }
+    </style>
+    <paper-toolbar>
+      <span class="title">Shell</span>
+      <paper-button raised id="my-shell-save-button">Save</paper-button>
+    </paper-toolbar>
+    <paper-input label="path to shell" class="paper-font-body2" value="{{shell::input}}"></paper-input>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      var ipc = require('electron').ipcRenderer;
+
+      Polymer({
+        is: 'my-shell',
+
+        properties: {
+          shell: {
+            type: String,
+            value: '/bin/sh',
+            notify: true
+          }
+        },
+
+        listeners: {
+          'my-shell-save-button.tap': 'saveShell'
+        },
+
+        ready: function(e) {
+          var _this = this;
+          console.log(e);
+          ipc.on('return-get-shell', function(event, shell) {
+            console.log('return-get-shell');
+            console.log(event);
+            console.log(shell);
+            // console.log('this');
+            // console.log(this);
+            _this.shell = shell;
+          });
+          ipc.send('get-shell');
+        },
+
+        saveShell: function(e) {
+          console.log(e);
+          // window.alert('save shell');
+          ipc.send('save-shell', this.shell);
+        }
+
+      });
+    })();
+  </script>
+
+</dom-module>

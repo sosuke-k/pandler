@@ -1,0 +1,109 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="my-commands">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+      #commandContainer {
+        padding: 15px;
+      }
+      paper-toolbar {
+        background: white;
+        color: red;
+      }
+      paper-material.command {
+        width: 100%;
+        margin-bottom: 10px;
+        background-color: whitesmoke;
+      }
+      paper-material.command paper-toolbar {
+        background-color: whitesmoke;
+        color: black;
+      }
+      paper-material.command paper-toolbar iron-icon {
+        margin: 10px;
+      }
+      paper-material.command paper-input {
+        margin-right: 20px;
+        margin-left: 20px;
+      }
+    </style>
+    <paper-toolbar>
+      <span class="title">Commands</span>
+      <paper-button raised id="my-commands-add-button">Add</paper-button>
+      <paper-button raised id="my-commands-save-button">Save</paper-button>
+    </paper-toolbar>
+    <div id="commandContainer" class="vertical">
+      <template is="dom-repeat" items="{{commands}}">
+        <paper-material class="command" elevation="1">
+          <paper-toolbar>
+            <iron-icon src="http://www.google.com/s2/favicons?domain={{item.host}}"></iron-icon>
+            <span style="margin-right: 5px;">fires</span>
+            <span style="color:red;" class="title">{{item.command}}</span>
+            <paper-icon-button icon="delete" on-click="deleteCommand"></paper-icon-button>
+          </paper-toolbar>
+          <paper-input label="host" class="paper-font-body2" value="{{item.host::input}}"></paper-input>
+          <paper-input label="command" class="paper-font-body2" value="{{item.command::input}}"></paper-input>
+        </paper-material>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      var ipc = require('electron').ipcRenderer;
+
+      Polymer({
+        is: 'my-commands',
+
+        properties: {
+          commands: {
+            type: Array,
+            value: []
+          }
+        },
+
+        listeners: {
+          'my-commands-add-button.tap': 'addCommand',
+          'my-commands-save-button.tap': 'saveCommands'
+        },
+
+        ready: function() {
+          var _this = this;
+          ipc.on('return-get-commands', function(event, commands) {
+            console.log('return-get-shell');
+            console.log(event);
+            console.log(commands);
+            commands.forEach(function(cmd) {
+              _this.unshift('commands', {host: cmd.host, command: cmd.command});
+            });
+          });
+          ipc.send('get-commands');
+        },
+
+        addCommand: function() {
+          this.unshift('commands', {host: '*', command: 'open ~/'});
+        },
+
+        deleteCommand: function(e) {
+          console.log(e.model.item);
+          var index = this.commands.indexOf(e.model.item);
+          if (index !== -1) {
+            this.splice('commands', index, 1);
+          }
+        },
+
+        saveCommands: function() {
+          ipc.send('save-commands', this.commands);
+        }
+
+      });
+    })();
+  </script>
+
+</dom-module>

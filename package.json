@@ -1,13 +1,8 @@
 {
-  "name": "pandler",
-  "version": "0.1.0",
+  "name": "Pandler",
+  "version": "0.1.1",
   "description": "A useful protocol handler",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "pack-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/app-icon/mac/app.icns --out=out"
-  },
-  "repository": "https://github.com/sosuke-k/atom-ghq-protocol-handler",
+  "repository": "https://github.com/sosuke-k/pandler",
   "keywords": [
     "Electron",
     "protocol",
@@ -15,8 +10,54 @@
   ],
   "author": "sosuke-k",
   "license": "MIT",
+  "main": "electron.js",
+  "scripts": {
+    "test": "gulp test:local",
+    "start": "gulp && electron ./",
+    "lint": "gulp lint",
+    "pack-mac": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=darwin --arch=x64 --icon=assets/app-icon/mac/app.icns --out=out --osx-sign.identity='Developer ID Application: GitHub' --extend-info=assets/mac/info.plist",
+    "pack-win": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=win32 --arch=ia32 --icon=assets/app-icon/win/app.ico --out=out --version-string.CompanyName='GitHub, Inc.' --version-string.FileDescription='Electron API Demos' --version-string.ProductName='Electron API Demos'",
+    "pack-linux": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=linux --arch=x64 --out=out",
+    "package": "npm run pack-mac && npm run pack-win && npm run pack-linux"
+  },
+  "dependencies": {
+    "node-notifier": "^5.0.2"
+  },
   "devDependencies": {
+    "browser-sync": "^2.7.7",
+    "connect-history-api-fallback": "^1.1.0",
+    "del": "^2.0.2",
     "electron": "^1.4.1",
-    "electron-packager": "^8.5.1"
+    "electron-packager": "^8.5.1",
+    "glob-all": "^3.0.1",
+    "gulp": "^3.8.5",
+    "gulp-autoprefixer": "^3.1.0",
+    "gulp-cache": "^0.4.0",
+    "gulp-changed": "^1.0.0",
+    "gulp-gh-pages": "^0.5.4",
+    "gulp-html-extract": "^0.0.3",
+    "gulp-if": "^2.0.0",
+    "gulp-imagemin": "^2.2.1",
+    "gulp-jscs": "^3.0.0",
+    "gulp-jscs-stylish": "^1.1.2",
+    "gulp-jshint": "^1.6.3",
+    "gulp-load-plugins": "^1.1.0",
+    "gulp-minify-css": "^1.2.1",
+    "gulp-minify-html": "^1.0.2",
+    "gulp-rename": "^1.2.0",
+    "gulp-replace": "^0.5.4",
+    "gulp-size": "^2.0.0",
+    "gulp-uglify": "^1.2.0",
+    "gulp-useref": "^2.1.0",
+    "gulp-vulcanize": "^6.0.0",
+    "jshint-stylish": "^2.0.0",
+    "merge-stream": "^1.0.0",
+    "require-dir": "^0.3.0",
+    "run-sequence": "^1.0.2",
+    "vulcanize": ">= 1.4.2",
+    "web-component-tester": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=0.10.0"
   }
 }

@@ -1,6 +1,7 @@
 const path = require('path')
 const url = require('url')
 const fs = require('fs');
+const notifier = require('node-notifier')
 
 const electron = require('electron')
 const app = electron.app
@@ -128,6 +129,13 @@ function onReady () {
   let commands = store.get('commands')
   updateCommands(commands)
   initDict = true
+
+  notifier.notify({
+    icon: 'file://' + __dirname + '/assets/app-icon/png/128.png',
+    title: 'atom',
+    message: '/Users/katososuke/.ghq/github.com/sosuke-k/pandler',
+    sound: true
+  });
 }
 
 app.on('ready', onReady)
